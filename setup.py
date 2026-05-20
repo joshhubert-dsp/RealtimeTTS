@@ -1,13 +1,15 @@
 current_version = "0.7.1"
 
-import setuptools
 import re
+
+import setuptools
 
 # Read the contents of README.md
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
-long_description = """
+long_description = (
+    """
 To install realtimetts, you need to specify the TTS engine(s) you wish to use.
 
 For example, to install all supported engines:
@@ -37,6 +39,7 @@ Available engine options include:
 - **omnivoice**: Omnivoice TTS integration
 - **luxtts**: LuxTTS integration
 - **chatterbox**: Chatterbox Turbo integration
+- **chatterbox-full**: Chatterbox full TTS integration
 - **sopro**: SoproTTS integration
 - **soprano**: SopranoTTS integration
 - **neutts**: NeuTTS integration
@@ -53,7 +56,10 @@ You can install multiple engines by separating them with commas. For example:
 
     pip install realtimetts[azure,elevenlabs,openai]
 
-""" + long_description
+"""
+    + long_description
+)
+
 
 # Read requirements.txt and parse it
 def parse_requirements(filename):
@@ -63,7 +69,7 @@ def parse_requirements(filename):
             line = line.strip()
             if line and not line.startswith("#"):
                 # Split by any version operator: =, >, <, ~, or !
-                package = re.split(r'[=><~!]', line)[0].strip()
+                package = re.split(r"[=><~!]", line)[0].strip()
                 requirements[package] = line
     return requirements
 
@@ -76,7 +82,7 @@ print("Requirements:", requirements)
 all_requirements = list(requirements.values())
 
 # Define base requirements (using .get() to prevent KeyErrors if missing from requirements.txt)
-base_requirements =[
+base_requirements = [
     requirements.get("stream2sentence", "stream2sentence"),
     requirements.get("pydub", "pydub"),
     requirements.get("pyaudio", "pyaudio"),
@@ -85,7 +91,9 @@ base_requirements =[
 
 # Define subsets of requirements for each engine safely
 system_requirements = [requirements.get("pyttsx3", "pyttsx3")]
-azure_requirements = [requirements.get("azure-cognitiveservices-speech", "azure-cognitiveservices-speech")]
+azure_requirements = [
+    requirements.get("azure-cognitiveservices-speech", "azure-cognitiveservices-speech")
+]
 elevenlabs_requirements = [requirements.get("elevenlabs", "elevenlabs")]
 openai_requirements = [requirements.get("openai", "openai")]
 gtts_requirements = [requirements.get("gtts", "gtts")]
@@ -100,6 +108,7 @@ qwen_requirements = [requirements.get("faster-qwen3-tts", "faster-qwen3-tts")]
 orpheus_requirements = [requirements.get("snac", "snac")]
 omnivoice_requirements = [requirements.get("omnivoice", "omnivoice")]
 chatterbox_requirements = [requirements.get("chatterbox-tts", "chatterbox-tts")]
+chatterbox_full_requirements = chatterbox_requirements
 sopro_requirements = [requirements.get("sopro", "sopro")]
 soprano_requirements = [requirements.get("soprano-tts", "soprano-tts")]
 neutts_requirements = [requirements.get("neutts", "neutts")]
@@ -207,6 +216,7 @@ extras_require = {
     "luxtts": base_requirements + luxtts_requirements,
     "zipvoice": base_requirements + zipvoice_requirements,
     "chatterbox": base_requirements + chatterbox_requirements,
+    "chatterbox-full": base_requirements + chatterbox_full_requirements,
     "sopro": base_requirements + sopro_requirements,
     "soprano": base_requirements + soprano_requirements,
     "neutts": base_requirements + neutts_requirements,
@@ -220,9 +230,19 @@ extras_require = {
     "moss-tts": base_requirements + moss_requirements,
     "piper": base_requirements,
     "qwen": base_requirements + qwen_requirements,
-    "jp": base_requirements +["mecab-python3>=1.0.6", "unidic-lite>=1.0.8", "cutlet", "fugashi>=1.4.0", "jaconv>=0.4.0", "mojimoji>=0.0.13", "pyopenjtalk>=0.4.0"],
-    "zh": base_requirements +["pypinyin>=0.53.0", "ordered_set>=4.1.0", "jieba>=0.42.1", "cn2an>=0.5.23"],
-    "ko": base_requirements +["hangul_romanize"],
+    "jp": base_requirements
+    + [
+        "mecab-python3>=1.0.6",
+        "unidic-lite>=1.0.8",
+        "cutlet",
+        "fugashi>=1.4.0",
+        "jaconv>=0.4.0",
+        "mojimoji>=0.0.13",
+        "pyopenjtalk>=0.4.0",
+    ],
+    "zh": base_requirements
+    + ["pypinyin>=0.53.0", "ordered_set>=4.1.0", "jieba>=0.42.1", "cn2an>=0.5.23"],
+    "ko": base_requirements + ["hangul_romanize"],
 }
 
 setuptools.setup(

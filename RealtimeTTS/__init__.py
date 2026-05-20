@@ -28,6 +28,7 @@ __all__ = [
     "TypecastEngine", "TypecastVoice",
     "LuxTTSEngine", "LuxTTSVoice",
     "ChatterboxEngine", "ChatterboxVoice",
+    "ChatterboxFullEngine", "ChatterboxFullVoice",
     "SoproTTSEngine", "SoproTTSVoice",
     "SopranoEngine", "SopranoVoice",
     "MossTTSEngine", "MossTTSVoice",
@@ -336,6 +337,22 @@ def _load_chatterbox_engine():
     return ChatterboxEngine
 
 
+def _load_chatterbox_full_engine():
+    try:
+        from .engines.chatterbox_full_engine import (
+            ChatterboxFullEngine,
+            ChatterboxFullVoice,
+        )
+    except ImportError as e:
+        raise ImportError(
+            "Failed to load ChatterboxFullEngine and ChatterboxFullVoice. "
+            "Install Chatterbox with: pip install chatterbox-tts"
+        ) from e
+    globals()["ChatterboxFullEngine"] = ChatterboxFullEngine
+    globals()["ChatterboxFullVoice"] = ChatterboxFullVoice
+    return ChatterboxFullEngine
+
+
 def _load_sopro_engine():
     try:
         from .engines.sopro_engine import SoproTTSEngine, SoproTTSVoice
@@ -422,6 +439,8 @@ _lazy_imports = {
     "LuxTTSVoice": _load_luxtts_engine,
     "ChatterboxEngine": _load_chatterbox_engine,
     "ChatterboxVoice": _load_chatterbox_engine,
+    "ChatterboxFullEngine": _load_chatterbox_full_engine,
+    "ChatterboxFullVoice": _load_chatterbox_full_engine,
     "SoproTTSEngine": _load_sopro_engine,
     "SoproTTSVoice": _load_sopro_engine,
     "SopranoEngine": _load_soprano_engine,

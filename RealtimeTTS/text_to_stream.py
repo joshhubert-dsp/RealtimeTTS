@@ -735,7 +735,7 @@ class TextToAudioStream:
                                 print(f"Error: {e}")
 
                             if log_synthesized_text:
-                                print(f"\033[92m\033[1m✔ SYNTHESIS FINISHED\033[0m")
+                                print("\033[92m\033[1m✔ SYNTHESIS FINISHED\033[0m")
                             
                             if not synthesis_successful:
                                 if len(self.engines) == 1:

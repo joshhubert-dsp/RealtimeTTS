@@ -180,3 +180,6 @@ deepspeed/flash_attn-2.6.3-cp310-cp310-win_amd64.whl
 tests/hello.mp3
 tests/hello.srt
 tests/ref_audio.pt
+
+# vscode project settings
+.vscode

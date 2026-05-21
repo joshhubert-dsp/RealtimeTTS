@@ -54,10 +54,7 @@ class ChatterboxEngine(BaseEngine):
         device: str = "cuda",
         model_path: Optional[str] = None,
         repetition_penalty: float = 1.2,
-        min_p: float = 0.0,
         top_p: float = 0.95,
-        exaggeration: float = 0.0,
-        cfg_weight: float = 0.0,
         temperature: float = 0.8,
         top_k: int = 1000,
         norm_loudness: bool = True,
@@ -79,10 +76,7 @@ class ChatterboxEngine(BaseEngine):
         self.device = device
         self.model_path = model_path
         self.repetition_penalty = repetition_penalty
-        self.min_p = min_p
         self.top_p = top_p
-        self.exaggeration = exaggeration
-        self.cfg_weight = cfg_weight
         self.temperature = temperature
         self.top_k = top_k
         self.norm_loudness = norm_loudness
@@ -132,7 +126,6 @@ class ChatterboxEngine(BaseEngine):
             logging.info("Encoding Chatterbox prompt: %s", voice.audio_prompt_path)
             self._model.prepare_conditionals(
                 voice.audio_prompt_path,
-                exaggeration=self.exaggeration,
                 norm_loudness=self.norm_loudness,
             )
             self._prepared_voice_path = prompt_path
@@ -141,10 +134,7 @@ class ChatterboxEngine(BaseEngine):
     def set_voice_parameters(self, **voice_parameters):
         valid_params = {
             "repetition_penalty",
-            "min_p",
             "top_p",
-            "exaggeration",
-            "cfg_weight",
             "temperature",
             "top_k",
             "norm_loudness",
@@ -158,9 +148,6 @@ class ChatterboxEngine(BaseEngine):
         for param, value in voice_parameters.items():
             if param in valid_params:
                 setattr(self, param, value)
-        if "exaggeration" in voice_parameters and self.voice is not None:
-            self._prepared_voice_path = None
-            self.set_voice(self.voice)
 
     def _to_float_mono(self, wav):
         if hasattr(wav, "detach"):
@@ -186,11 +173,8 @@ class ChatterboxEngine(BaseEngine):
             wav = self._model.generate(
                 text,
                 repetition_penalty=self.repetition_penalty,
-                min_p=self.min_p,
                 top_p=self.top_p,
                 audio_prompt_path=None,
-                exaggeration=self.exaggeration,
-                cfg_weight=self.cfg_weight,
                 temperature=self.temperature,
                 top_k=self.top_k,
                 norm_loudness=self.norm_loudness,

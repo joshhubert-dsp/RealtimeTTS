@@ -423,6 +423,7 @@ class TextToAudioStream:
         sentence_fragment_delimiters: str = ".?!;:,\n…。",
         force_first_fragment_after_words=30,
         debug=False,
+        group_sentences: int = 1,
     ):
         """
         Async handling of text to audio synthesis, see play() method.
@@ -455,6 +456,7 @@ class TextToAudioStream:
                 force_first_fragment_after_words,
                 True,
                 debug,
+                group_sentences,
             )
             self.play_thread = threading.Thread(target=self.play, args=args)
             self.play_thread.start()
@@ -488,6 +490,7 @@ class TextToAudioStream:
         force_first_fragment_after_words=30,
         is_external_call=True,
         debug=False,
+        group_sentences: int = 1,
     ):
         """
         Handles the synthesis of text to audio.
@@ -498,6 +501,7 @@ class TextToAudioStream:
         - fast_sentence_fragment: Determines if sentence fragments should be quickly yielded. Useful when a faster response is desired even if a sentence isn't complete.
         - fast_sentence_fragment_allsentences: Fast_sentence_fragment only works on the first sentence. Set this to True if you want to work it on every sentence.
         - fast_sentence_fragment_allsentences_multiple: Can yield multiple sentence fragments, not only a single one.
+        - group_sentences: Number of sentence splitter outputs to join into one synthesis chunk before buffering. Default is 1. Values greater than 1 reduce synthesis calls for engines that perform better on longer text.
         - buffer_threshold_seconds (float): Time in seconds for the buffering threshold, influencing the flow and continuity of audio playback. Set to 0 to deactivate. Default is 0.
           - How it Works: The system verifies whether there is more audio content in the buffer than the duration defined by buffer_threshold_seconds. If so, it proceeds to synthesize the next sentence, capitalizing on the remaining audio to maintain smooth delivery. A higher value means more audio is pre-buffered, which minimizes pauses during playback. Adjust this upwards if you encounter interruptions.
           - Helps to decide when to generate more audio based on buffered content.
@@ -644,6 +648,9 @@ class TextToAudioStream:
                     sentence_fragment_delimiters=sentence_fragment_delimiters,
                     force_first_fragment_after_words=force_first_fragment_after_words,
                     debug=debug,
+                )
+                generate_sentences = self._group_sentences(
+                    generate_sentences, group_sentences
                 )
 
                 # Create the synthesis chunk generator with the given sentences
@@ -824,6 +831,9 @@ class TextToAudioStream:
                 # we need to start another play() call (!recursively!)
                 self.play(
                     fast_sentence_fragment=fast_sentence_fragment,
+                    fast_sentence_fragment_allsentences=fast_sentence_fragment_allsentences,
+                    fast_sentence_fragment_allsentences_multiple=fast_sentence_fragment_allsentences_multiple,
+                    group_sentences=group_sentences,
                     buffer_threshold_seconds=buffer_threshold_seconds,
                     minimum_sentence_length=minimum_sentence_length,
                     minimum_first_fragment_length=minimum_first_fragment_length,
@@ -835,6 +845,7 @@ class TextToAudioStream:
                     tokenizer=tokenizer,
                     language=language,
                     context_size=context_size,
+                    context_size_look_overhead=context_size_look_overhead,
                     muted=muted,
                     sentence_fragment_delimiters=sentence_fragment_delimiters,
                     force_first_fragment_after_words=force_first_fragment_after_words,
@@ -1237,3 +1248,29 @@ class TextToAudioStream:
 
             # Yield the remaining synthesis_chunk
             yield synthesis_chunk
+
+    @staticmethod
+    def _group_sentences(
+        generator: Iterator[str],
+        group_sentences: int = 1,
+    ) -> Iterator[str]:
+        """
+        Groups sentence splitter outputs into fixed-size synthesis chunks.
+        """
+        if group_sentences <= 1:
+            yield from generator
+            return
+
+        sentence_group = []
+        for sentence in generator:
+            sentence = sentence.strip()
+            if not sentence:
+                continue
+
+            sentence_group.append(sentence)
+            if len(sentence_group) >= group_sentences:
+                yield " ".join(sentence_group)
+                sentence_group = []
+
+        if sentence_group:
+            yield " ".join(sentence_group)
